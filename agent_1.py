@@ -87,9 +87,24 @@ Example format:
 def agent_2_generate_prompts(beats: List[SceneBeat], duration: int = 5, aspect_ratio: str = "9:16") -> List[BrollPrompt]:
     prompts = []
     for beat in beats:
-        formatted = f"{beat.scene_description}, cinematic, {beat.emotion} mood"
-        search_instruction = f"Search stock or AI video libraries for: '{beat.scene_description}' with a {beat.emotion} vibe."
-        prompts.append(BrollPrompt(prompt=formatted, duration=duration, aspect_ratio=aspect_ratio, insert_after=beat.script_excerpt, search_instruction=search_instruction))
+        review = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You're an AI video generation advisor. Given a scene description, judge whether a generative video AI like Kling or Pika could realistically generate this scene effectively. Be strict. Only approve if it's visually specific, feasible with current generative tools, and not too abstract or complex. Respond only with 'yes' or 'no'."},
+                {"role": "user", "content": beat.scene_description}
+            ]
+        )
+        verdict = review.choices[0].message.content.strip().lower()
+        if verdict == "yes":
+            formatted = f"{beat.scene_description}, cinematic, {beat.emotion} mood"
+            search_instruction = f"Search stock or AI video libraries for: '{beat.scene_description}' with a {beat.emotion} vibe."
+            prompts.append(BrollPrompt(
+                prompt=formatted,
+                duration=duration,
+                aspect_ratio=aspect_ratio,
+                insert_after=beat.script_excerpt,
+                search_instruction=search_instruction
+            ))
     return prompts
 
 # Streamlit UI
