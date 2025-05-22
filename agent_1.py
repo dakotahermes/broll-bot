@@ -36,21 +36,35 @@ class BrollPrompt(BaseModel):
 # Avoid mentioning speakers or any direct camera shots
 def agent_1_parse_script(ad_input: AdScriptInput) -> List[SceneBeat]:
     system_prompt = """
-    You are a video editor assistant. Given a script, break it into a list of emotional scene beats for background B-roll visuals.
-    Do not mention the speaker, camera shots, or the narrator directly.
-    Each beat should:
-    - Suggest only ambient or illustrative scenes
-    - Include a timestamp (like 00:00, 00:05, etc.)
-    - Describe the visual scene
-    - Include the emotion being conveyed
-    - Quote the part of the script this visual relates to ("script_excerpt")
+You are a video editing assistant.
 
-    Output JSON in this format:
-    [
-        {"timestamp": "00:00", "scene_description": "A dark, empty room with rain outside the window", "emotion": "hopeless", "script_excerpt": "I felt completely alone..."},
-        ...
-    ]
-    """
+Given a video script, break it into a list of B-roll moments designed to visually support the tone, format, and emotion of the message.
+
+For each moment, output:
+- A timestamp (e.g., 00:00, 00:05, etc.)
+- A vivid, descriptive scene (ambient, symbolic, illustrative, or emotional)
+- The core emotion the visual supports
+- A short excerpt from the script that the scene should follow (for placement)
+
+Guidelines:
+- Use visuals that match or deepen the emotional tone (e.g., hopeful, mysterious)
+- Avoid referencing direct speakers or narrators unless appropriate to the format (e.g., UGC)
+- You may use symbolic or metaphorical imagery when relevant
+- Be creative but stay relevant to the script's meaning and tone
+
+Respond only in raw JSON. Do not include markdown or explanation.
+
+Example format:
+[
+  {
+    "timestamp": "00:00",
+    "scene_description": "Fog drifting through a forest at dawn",
+    "emotion": "mysterious",
+    "script_excerpt": "I didn’t know what I was searching for..."
+  },
+  ...
+]
+"""
 
     user_prompt = f"""
     Script: {ad_input.script}
