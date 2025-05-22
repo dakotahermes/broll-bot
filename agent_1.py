@@ -15,7 +15,7 @@ client = OpenAI()
 # Step 1: Define input structure
 class AdScriptInput(BaseModel):
     script: str
-    tone: Literal['inspiring', 'urgent', 'calm', 'funny']
+    tone: Literal['inspiring', 'urgent', 'calm', 'funny', 'serious', 'emotional', 'uplifting', 'mysterious']
     format: Literal['UGC', 'talking_head', 'testimonial']
 
 # Step 2: Define output structure for b-roll suggestions
@@ -30,6 +30,7 @@ class BrollPrompt(BaseModel):
     duration: int
     aspect_ratio: str
     insert_after: str
+    search_instruction: str
 
 # Agent 1: Uses OpenAI to parse the script into emotional scene beats
 # Avoid mentioning speakers or any direct camera shots
@@ -68,12 +69,13 @@ def agent_1_parse_script(ad_input: AdScriptInput) -> List[SceneBeat]:
     beats_data = json.loads(response.choices[0].message.content)
     return [SceneBeat(**beat) for beat in beats_data]
 
-# Agent 2: Converts scene beats into video generation prompts
+# Agent 2: Converts scene beats into video generation prompts + search instructions
 def agent_2_generate_prompts(beats: List[SceneBeat], duration: int = 5, aspect_ratio: str = "9:16") -> List[BrollPrompt]:
     prompts = []
     for beat in beats:
         formatted = f"{beat.scene_description}, cinematic, {beat.emotion} mood"
-        prompts.append(BrollPrompt(prompt=formatted, duration=duration, aspect_ratio=aspect_ratio, insert_after=beat.script_excerpt))
+        search_instruction = f"Search stock or AI video libraries for: '{beat.scene_description}' with a {beat.emotion} vibe."
+        prompts.append(BrollPrompt(prompt=formatted, duration=duration, aspect_ratio=aspect_ratio, insert_after=beat.script_excerpt, search_instruction=search_instruction))
     return prompts
 
 # Streamlit UI
@@ -81,7 +83,7 @@ st.set_page_config(page_title="B-Roll Bot", layout="centered")
 st.title("🎬 B-Roll Bot")
 
 script_input = st.text_area("Paste your ad script here:")
-tone = st.selectbox("Select Tone:", ["inspiring", "urgent", "calm", "funny"])
+tone = st.selectbox("Select Tone:", ["inspiring", "urgent", "calm", "funny", "serious", "emotional", "uplifting", "mysterious"])
 format_type = st.selectbox("Select Format:", ["UGC", "talking_head", "testimonial"])
 
 if st.button("Generate B-Roll Prompts") and script_input:
@@ -92,4 +94,5 @@ if st.button("Generate B-Roll Prompts") and script_input:
     st.subheader("Generated Prompts")
     for prompt in broll_prompts:
         st.markdown(f"**Insert after:** _{prompt.insert_after}_")
+        st.markdown(f"**Search Tip:** {prompt.search_instruction}")
         st.json({"prompt": prompt.prompt, "duration": prompt.duration, "aspect_ratio": prompt.aspect_ratio})
