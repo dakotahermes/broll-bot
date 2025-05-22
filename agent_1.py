@@ -51,6 +51,8 @@ Guidelines:
 - Avoid referencing direct speakers or narrators unless appropriate to the format (e.g., UGC)
 - You may use symbolic or metaphorical imagery when relevant
 - Be creative but stay relevant to the script's meaning and tone
+- Do not refer to specific character names or identities (e.g., “Spencer” or “she”) — describe people generically (e.g., “a man,” “a woman,” “a musician”)
+
 
 Respond only in raw JSON. Do not include markdown or explanation.
 
